@@ -80,7 +80,8 @@ div#controls {
       border: 1px solid #686865;
     }
 
-      div#controls div#call-controls button#button-hangup {
+      div#controls div#call-controls button#button-hangup,
+      div#controls div#call-controls button#button-unmute {
         display: none;
       }
 

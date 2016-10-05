@@ -1,4 +1,6 @@
-﻿$(function () {
+﻿var _conn;
+
+$(function () {
   log('Requesting Capability Token...');
   $.getJSON('/token')
     .done(function (data) {
@@ -19,27 +21,26 @@
 
       Twilio.Device.connect(function (conn) {
         log('Successfully established call!');
+        _conn = conn;
+
+        // Setup mute event handler
+        conn.mute(function (muted, mutedConn){
+            log('Mute status changed: ' + (muted ? 'MUTED' : 'NOT MUTED'));
+            document.getElementById('button-mute').style.display = (muted ? 'none' : 'inline');
+            document.getElementById('button-unmute').style.display = (muted ? 'inline' : 'none');
+        });
+
+        document.getElementById('button-mute').style.display = 'inline';
+        document.getElementById('button-unmute').style.display = 'none';
         document.getElementById('button-call').style.display = 'none';
         document.getElementById('button-hangup').style.display = 'inline';
       });
 
       Twilio.Device.disconnect(function (conn) {
         log('Call ended.');
+        _conn = null;
         document.getElementById('button-call').style.display = 'inline';
         document.getElementById('button-hangup').style.display = 'none';
-      });
-
-      Twilio.Device.incoming(function (conn) {
-        log('Incoming connection from ' + conn.parameters.From);
-        var archEnemyPhoneNumber = '+12099517118';
-
-        if (conn.parameters.From === archEnemyPhoneNumber) {
-          conn.reject();
-          log('It\'s your nemesis. Rejected call.');
-        } else {
-          // accept the incoming connection and start two-way audio
-          conn.accept();
-        }
       });
 
       setClientNameUI(data.identity);
@@ -50,12 +51,12 @@
 
   // Bind button to make call
   document.getElementById('button-call').onclick = function () {
-    // get the phone number to connect the call to
+    // get the conference name to connect the call to
     var params = {
-      To: document.getElementById('phone-number').value
+      Name: document.getElementById('phone-number').value
     };
 
-    console.log('Calling ' + params.To + '...');
+    console.log('Calling ' + params.Name + '...');
     Twilio.Device.connect(params);
   };
 
@@ -65,6 +66,15 @@
     Twilio.Device.disconnectAll();
   };
 
+  // Bind button to mute
+  document.getElementById('button-mute').onclick = function () {
+    setMute(true);
+  };
+
+  // Bind button to unmute
+  document.getElementById('button-unmute').onclick = function () {
+    setMute(false);
+  };
 });
 
 // Activity log
@@ -79,4 +89,11 @@ function setClientNameUI(clientName) {
   var div = document.getElementById('client-name');
   div.innerHTML = 'Your client name: <strong>' + clientName +
     '</strong>';
+}
+
+function setMute(bool) {
+    if(!_conn) {
+        return;
+    }
+    _conn.mute(bool);
 }
