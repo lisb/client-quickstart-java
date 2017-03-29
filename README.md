@@ -1,3 +1,11 @@
+# How to launch
+
+`mvn clean package`
+
+`TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_TWIML_APP_SID=... java -jar target/client-quickstart-1.0-SNAPSHOT.jar`
+
+---
+
 # Twilio Client Quickstart for Java
 
 This application should give you a ready-made starting point for writing your
